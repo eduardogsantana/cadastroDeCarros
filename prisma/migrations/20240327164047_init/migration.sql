@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "cad_cars" ALTER COLUMN "km" SET DATA TYPE TEXT;
