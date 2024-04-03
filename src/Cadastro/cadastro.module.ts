@@ -8,7 +8,7 @@ import { CadastroService, } from "./cadastro.service";
     imports: [PrismaModule],
     controllers: [CadastroController],
     exports: [],
-    providers: [CadastroService ],
+    providers: [CadastroService],
 })
 export class CadastroModule{
     

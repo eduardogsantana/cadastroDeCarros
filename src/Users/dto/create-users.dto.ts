@@ -6,7 +6,7 @@ export class CreateUserDTO{
     name: string
 
     @IsString()
-    user: string
+    username: string
     
     @IsEmail()
     email: string

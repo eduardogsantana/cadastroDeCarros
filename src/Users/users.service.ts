@@ -1,25 +1,29 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { CreateUserDTO } from "./dto/create-users.dto";
 import { UpdateUserDTO } from "./dto/update-users-dto";
 import { UpdatePatchUserDTO } from "./dto/update-patch-users-dto";
 import { PrismaService } from "src/prisma/prisma.service";
 import { cad_cars, Favorite, user_login } from "@prisma/client";
+import * as bcrypt from 'bcrypt';
 
 
 @Injectable()
 export class UserService {
-    constructor (private readonly prisma: PrismaService) {}
-    async create({name, email, user, cpf, password}: CreateUserDTO) {
-        return this.prisma.user_login.create({
-            data:{
-                name,
-                user,
-                email,
-                cpf,
-                password
-            }
-        })
+  constructor(private readonly prisma: PrismaService) {}
+  async create({name, email, username, cpf, password}: CreateUserDTO): Promise<any> {
+    const hashedPassword = await bcrypt.hash(password, 10)
+    
+    return this.prisma.user_login.create({
+        data:{
+            name,
+            username,
+            email,
+            cpf,
+            password: hashedPassword
+        }
+      })
     }
+
     async list(){
         return this.prisma.user_login.findMany()
     }
@@ -66,6 +70,9 @@ export class UserService {
             }
         })
     }
+
+    // FAVORITOS
+
     async favoriteCar(clientId: number, carId: number): Promise<Favorite> {
         return this.prisma.favorite.create({
           data: {
@@ -114,4 +121,24 @@ export class UserService {
     
         return { client, favoriteCars };
       }
+
+      // VALIDADOR DE LOGIN
+
+      async validateLogin(username: string, password: string): Promise<any> {
+        const user = await this.prisma.user_login.findUnique({
+            where: { username }
+        });
+
+        if (!user) {
+            throw new UnauthorizedException('Nome de usuário incorreto.')
+        }
+
+        const passwordMatches = await bcrypt.compare(password, user.password)
+
+        if (!passwordMatches) {
+            throw new UnauthorizedException('Senha incorreta.')
+        }
+
+        return user;
+    }
 }
